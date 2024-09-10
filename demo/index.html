@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pardotFormHandlerJS Demo</title>
+<meta charset="utf-8">
+<meta name="description" content="pardotFormHandlerJS Demo">
+<meta name="keywords" content="Pardot, Pardot Form Handler, Marketing Cloud Account Engagement, pardotFormHandlerJS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../pardot-form-handler-js.js"></script>
+</head>
+<body>
+<noscript>Sorry, but you need to enable JavaScript for this demo to work.</noscript>
+<h1>pardotFormHandlerJS Demo</h1>
+<form style="position:relative;padding:5px;border:1px solid #ccc;max-width:400px;" action="https://pardothandler.onrender.com/pardot-handler-simulation-with-dynamic-success-and-error-location" class="pardot-demo">
+    <label for="name">Name:</label><br>
+    <input id="name" name="name"><br><br>
+    <label for="name">Email:</label><br>
+    <input id="email" type="email" name="email"><br><br>
+    <button type="submit">Submit</button>
+</form>
+<script>
+    let pardotDebugForm = window.pardotFormHandlerJS.setupForm(
+        document.querySelector('.pardot-demo'),
+        {successMessage: 'Success!'}
+    )
+        .setSettings({
+            successMessage: 'More Success!',
+        })
+        .onBeforeSubmit(function(formValues, form) {
+            console.log("[onBeforeSubmit] formValues:", formValues);
+        })
+        .onSubmit(function(detail) {
+            console.log("[onSubmit] detail:", detail);
+        })
+        .onCancel(function(detail) {
+            console.log("[onCancel] detail:", detail);
+        })
+        .onSuccess(function(detail) {
+            console.log("[onSuccess] detail:", detail);
+        })
+        .onError(function(detail) {
+            console.log("[onError] detail:", detail);
+        })
+        .onComplete(function(detail) {
+            console.log("[onComplete] detail:", detail);
+        });
+
+    pardotDebugForm.setSettings({
+        successMessage: 'Even more Success!',
+    });
+</script>
+<div style="margin:50px 0 5px;color:#ccc;" class="server-check">Starting Pardot server mockup....</div>
+<script>
+    let serverCheck = {
+        running: function() {
+            document.querySelector('.server-check').innerHTML = 'Mockup server is running';
+        }
+    }
+</script>
+<script src="https://pardothandler.onrender.com/status?start-server"></script>
+</body>
+</html>
