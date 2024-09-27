@@ -1,16 +1,18 @@
-const http = require('http');
-const url = require('url');
+const http = require("http");
+const url = require("url");
 const port = process.env.PORT || 3000;
 
 const server = http.createServer(async function(req, res) {
-    var url_parts = url.parse(req.url, true);
-    var query = url_parts.query;
-    var calbackPayload = JSON.stringify(query, null, '  ');
-
-    var calbackCode = `(function(payload) {\n` +
-        `  if (typeof pardotFormHandlerJS !== 'undefined' && typeof pardotFormHandlerJS.callback === 'function') {\n` +
-        `    pardotFormHandlerJS.callback(payload);\n` +
-        `  }\n` +
+    const url_parts = url.parse(req.url, true);
+    const query = url_parts.query;
+    const calbackPayload = JSON.stringify(query, null, '  ');
+    const calbackCode = "(function(payload) {\n" +
+        "  if (\n" +
+        "    typeof window.pardotFormHandlerJS !== 'undefined' &&\n" +
+        "    typeof window.pardotFormHandlerJS.callback === 'function'\n" +
+        "  ) {\n" +
+        "    window.pardotFormHandlerJS.callback(payload);\n" +
+        "  }\n" +
         `})(${calbackPayload});\n`;
 
     res.statusCode = 200;

@@ -1,38 +1,40 @@
 # pardotFormHandlerJS
 
-`pardotFormHandlerJS` is a script tailored for setting up custom Pardot (aka "Marketing Cloud Account Engagement") forms.
+`pardotFormHandlerJS` is a script tailored for setting up custom Pardot (aka "Marketing Cloud Account Engagement") forms on your website without using iframes or backend APIs, as it sends requests directly from browser to Pardot handler.
 
 Project is lightweight and doesn't have any dependencies, effort was made to not add any unnecessary "fluff". It was attemted to support old browsers, without overdoing it. Suggestions and reports are welcome. There was no AI slavery on this project.
+
+## Demos
+
+https://MindaugasPaulauskas.github.io/pardotFormHandlerJS/
+demo source code: https://github.com/MindaugasPaulauskas/pardotFormHandlerJS/blob/main/index.html
 
 ## Setup
 
 1. Add `pardot-form-handler-js.min.js` to your project.
     * for example: `<script src="https://yourwebsite.com/path-to-scripts/pardot-form-handler-js.min.js"></script>`.
-1. Add callback scripts to your server, callback scripts can be dynamic or static:
+2. Add callback scripts to your server, callback scripts can be dynamic or static:
     * Option A (recomended): setup dynamic callback script as it's documented in `pardot-form-callback-dynamic.js-examples` directory, example of scripts location: `https://yourwebsite.com/path-to-scripts/pardot-form-callback-dynamic.js`
     * Option B (not recomended as error messages from pardot are lost, default error message will be shown): upload `pardot-form-callback-error.js` and `pardot-form-callback-success.js` scripts to your server to be accessed within your website, for example: `https://yourwebsite.com/path-to-scripts/pardot-form-callback-error.js` and `https://yourwebsite.com/path-to-scripts/pardot-form-callback-success.js`.
-1. Edit Chosen Pardot Form Handlers Success and Error Locations to the one you have set up before.
+3. Edit Chosen Pardot Form Handlers Success and Error Locations to the one you have set up before.
     * update Success Location, for example: `https://yourwebsite.com/path-to-scripts/pardot-form-callback-success.js`.
     * update Error Location, for example: `https://yourwebsite.com/path-to-scripts/pardot-form-callback-dynamic.js`.
-1. For every Pardot Form Field choose `External Field Name` that coresponds to html form input names.
-1. For every Pardot Form Field write an appropriate `Error Message`, so it could be understood in the error message, as all errors get joint to a single message.
+4. Edit Chosen Pardot Form Handlers Form Fields:
+    * create Form Fields coresponding to your form inputs.
+    * for every field choose `External Field Name` that coresponds to html form input names.
+    * for every field write an appropriate `Error Message`, so it could be understood in the error message, as all errors get joint to a single message.
 
 ## Basic usage
 
 Create an html form with action to your Pardot form handler loacation and add initialize it with code:
 ```js
-let pardotFormDom = document.querySelector('.your-form-elements-selector');
+let pardotFormDom = document.querySelector(".your-form-elements-selector");
 let pardotForm = window.pardotFormHandlerJS.setupForm(pardotFormDom);
 ```
 
 Success and error mesages will appear on top of the form, if you want messaging to be placed in different location, within your form, create a container with class _pardot-form-handler-js--message-container_.
 
 You can setup multiple forms on the page.
-
-## Demos
-
-* https://MindaugasPaulauskas.github.io/pardotFormHandlerJS/demo/
-* _more demos are comming..._
 
 ## Documentation
 
@@ -86,10 +88,10 @@ Returns a PardotForm object.
 * ```return``` ```true``` or ```void``` to process submission with original ```formValues```
 * ```return``` modiffied ```formValues``` to continue with the submission
 
-#### Example reasons of using __callbackFunction__:
-* to do local validation;
-* to check capcha;
-* to add hidden form values before sumbission;
+#### Example reasons for using __callbackFunction__:
+* to do local validation
+* to check capcha
+* to add hidden form values before sumbission
 
 ---
 
@@ -109,10 +111,10 @@ Returns a PardotForm object.
 #### Parameters of __callbackFunction__:
 * ___detail___ is an object submission and result details. In this case result is not available.
 
-#### Example reasons of using __callbackFunction__:
-* to lock form;
-* to show loader;
-* to remove old error messages.
+#### Example reasons for using __callbackFunction__:
+* to lock form
+* to show loader
+* to remove old error messages
 
 ---
 
@@ -150,9 +152,10 @@ Returns a PardotForm object.
 #### Parameters of __callbackFunction__:
 * ___detail___ is an object submission and result details.
 
-#### Example reasons of using __callbackFunction__:
-* to show custom success messaging;
+#### Example reasons for using __callbackFunction__:
+* to show custom success messaging
 * to replace the form with success message
+* to send form data to your database through an api call
 
 ---
 
@@ -172,8 +175,8 @@ Returns a PardotForm object.
 #### Parameters of __callbackFunction__:
 * ___detail___ is an object submission and result details.
 
-#### Example reasons of using __callbackFunction__:
-* to show custom error messaging;
+#### Example reasons for using __callbackFunction__:
+* to show custom error messaging
 
 ---
 
@@ -193,7 +196,7 @@ Returns a PardotForm object.
 #### Parameters of __callbackFunction__:
 * ___detail___ is an object submission and result details.
 
-#### Example reasons of using __callbackFunction__:
+#### Example reasons for using __callbackFunction__:
 * to unlock form
 * to remove/hide loader
 
@@ -213,19 +216,19 @@ Call this function to remove event listeners and cancel current request of the p
 create an object with settings that you want to change, for example:
 ```js
 {
-    successMessage: 'Thank you!',
+    successMessage: "Thank you!",
     timeout: 9999,
-    defaultErrorMessage: 'Something Went Wrong! Please try again.',
+    defaultErrorMessage: "Something Went Wrong! Please try again.",
 }
 ```
 
 #### List of Settings and default values:
 * actionUrl: ```false```,
-* successMessage: ```'Success! Thank you for submission.'```,
+* successMessage: ```"Success! Thank you for submission."```,
 * resetFormAfterSuccess: ```true```,
-* defaultErrorMessage: ```'Submission failed! Please enter required information.'```,
+* defaultErrorMessage: ```"Submission failed! Please enter required information."```,
 * timeout: ```5000```,
-* timeoutMessage: ```'Ops! Request has timed out. Please try again later.'```,
+* timeoutMessage: ```"Ops! Request has timed out. Please try again later."```,
 * showLoadingOverlay: ```true```,
 * loadingOverlayBgColor: ```"rgba(0,0,0,0.1)"```,
 * loadingOverlayInnerHtml: [long string with html code, too long to display here],
@@ -242,11 +245,11 @@ create an object with settings that you want to change, for example:
 
 ```js
 let pardotDebugForm = window.pardotFormHandlerJS.setupForm(
-    document.querySelector('#pardot-debug-form'),
-    {successMessage: 'Success!'}
+    document.querySelector("#pardot-debug-form"),
+    {successMessage: "Success!"}
 )
     .setSettings({
-        successMessage: 'More Success!',
+        successMessage: "More Success!",
     })
     .onBeforeSubmit(function(formValues, form) {
         console.log("[onBeforeSubmit] formValues:", formValues);
@@ -268,13 +271,21 @@ let pardotDebugForm = window.pardotFormHandlerJS.setupForm(
     });
 
 pardotDebugForm.setSettings({
-    successMessage: 'Even more Success!',
+    successMessage: "Even more Success!",
 });
 ```
 
+## Other
+
+* More documentation is coming (especially on configuration)
+* More demos are coming (open to suggestions)
+* Please report any issues
+
 ## Credits
-* this project was "uninspired" by https://github.com/horans/pardot-form-ajax-handler;
-* code minification has been done using https://skalman.github.io/UglifyJS-online/;
-* `hashCode` function was taken from https://stackoverflow.com/questions/194846/is-there-hash-code-function-accepting-any-object-type/#answer-8076436;
-* Pardot form mockup handler and dynamic callback for demos are hosted on https://render.com;
-* static demo files are hosted on https://pages.github.com/.
+* This project was "uninspired" by https://github.com/horans/pardot-form-ajax-handler
+* Code minification has been done using https://skalman.github.io/UglifyJS-online/
+* `hashCode` function was taken from https://stackoverflow.com/questions/194846/is-there-hash-code-function-accepting-any-object-type/#answer-8076436
+* Pardot form mockup handler and dynamic callback for demos are hosted on https://render.com
+* Static demo files are hosted on https://pages.github.com/
+* GitHub star button on demo page hosted on https://ghbtns.com/
+* GitHub corner code taken from https://tholman.com/github-corners/

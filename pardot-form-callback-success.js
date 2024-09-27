@@ -1,3 +1,5 @@
-if (typeof pardotFormHandlerJS !== 'undefined' && typeof pardotFormHandlerJS.callback === 'function') {
-    pardotFormHandlerJS.callback({errors: false});
+if (typeof window.pardotFormHandlerJS !== 'undefined' &&
+    typeof window.pardotFormHandlerJS.callback === 'function'
+) {
+    window.pardotFormHandlerJS.callback({errors: false});
 }
