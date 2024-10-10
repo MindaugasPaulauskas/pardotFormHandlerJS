@@ -1,12 +1,12 @@
 /*!
- * pardotFormHandlerJS v.0.1.1
+ * pardotFormHandlerJS v.0.2.0
  * https://github.com/MindaugasPaulauskas/pardotFormHandlerJS/
  *
  * Copyright (c) 2024 Mindaugas Paulauskas
  * Released under the MIT license
  * https://github.com/MindaugasPaulauskas/pardotFormHandlerJS/LICENSE
  *
- * Date: 2024-09-27
+ * Date: 2024-10-10
  */
 (function (root) {
     var namePardotFormHandlerJS = "pardotFormHandlerJS";
@@ -99,8 +99,6 @@
                     if (!field.checked) {
                         break;
                     }
-                    result = addValue(result, field.name, field.value);
-                    break;
                 default:
                     result = addValue(result, field.name, field.value);
             }
@@ -112,29 +110,23 @@
     var serializeFormValues = function (formValues) {
         var key;
         var value;
-        var s = [];
-        var addValue = function (valueArray, name, value) {
-            var newItem = encodeURIComponent(name);
-
-            newItem += "=";
-            newItem += encodeURIComponent(value);
-            valueArray[valueArray.length] = newItem;
-
-            return valueArray;
+        var result = [];
+        var encode = function(value) {
+            return encodeURIComponent(value)
         };
 
         for (key in formValues) {
             if (typeof formValues[key] === "string") {
-                s = addValue(s, key, formValues[key]);
+                result[result.length] = encode(key) + "=" + encode(formValues[key]);
             }
             else if (typeof formValues[key] === "object") {
                 for (i = 0; i < formValues[key].length; i++) {
-                    s = addValue(s, key, formValues[key][i]);
+                    result[result.length] = encode(key) + "=" + encode(formValues[key][i]);
                 }
             }
         }
 
-        return s.join("&").replace(/%20/g, "+");
+        return result.join("&").replace(/%20/g, "+");
     };
 
     var serializeForm = function (form) {
@@ -161,7 +153,7 @@
         var id = [staticPart, timePart, randomPart, formHashPart].join("-");
 
         if (typeof callbackList[id] !== "undefined") {
-            id = buildCallbackId(form)
+            id = buildCallbackId(form);
         }
 
         return id;
@@ -278,7 +270,7 @@
         resetFormAfterSuccess: true,
         defaultErrorMessage: "Submission failed! Please enter required information.",
         timeout: 5000,
-        timeoutMessage: "Ops! Request has timed out. Please try again later.",
+        timeoutMessage: "Oops! Request has timed out. Please try again later.",
         showLoadingOverlay: true,
         loadingOverlayBgColor: "rgba(0,0,0,0.1)",
         loadingOverlayInnerHtml: "<style>@keyframes " + classLoaderSpin + "{100%{transform:rotate(360deg);}}</style><div style='position:absolute;top:50%;left:50%;width:50px;height:50px;box-sizing:border-box;margin:-25px 0 0 -25px;border:#fff 4px solid;border-radius:25px;animation:" + classLoaderSpin + " 3s linear infinite;border-color:#666 transparent transparent;'></div>",
@@ -355,15 +347,43 @@
             return pf;
         };
 
+        var paused = false;
+
+        this.pause = function () {
+            paused = true;
+
+            return pf;
+        };
+
+        this.unpause = function (formValues) {
+            if (paused === false) {
+                return pf;
+            }
+
+            paused = false;
+
+            if (formValues === false) {
+                pf.formValues = false;
+                removeLoadingOverlay(pf.form, pf.settings);
+
+                return pf;
+            }
+
+            if (typeof formValues !== "undefined" && formValues !== true) {
+                pf.formValues = formValues;
+            }
+
+            continueSubmission();
+
+            return pf;
+        };
+
+        this.formValues = false;
+
         var listenForSubmission = function (event) {
             var form = event.target;
-            var url;
             var formValues;
             var beforeSubmitValue;
-            var formData;
-            var callbackName;
-            var scriptURL;
-            var script;
 
             if (!isForm(form)) {
                 return;
@@ -371,32 +391,60 @@
 
             event.preventDefault();
 
-            url = form.getAttribute("action");
-            if (pf.settings.actionUrl !== false) {
-                // TODO: check if the url is valid
-                url = pf.settings.actionUrl;
-            }
-
             formValues = getFormValues(form);
 
+            removeFormMessaging(form);
+
+            paused = false;
+
             beforeSubmitValue = pf.callbacks.onBeforeSubmit(formValues, form);
-
-            if (beforeSubmitValue === false) {
-                return;
-            }
-
-            if (typeof beforeSubmitValue !== "undefined" && beforeSubmitValue !== true) {
-                formValues = beforeSubmitValue;
-            }
 
             // Canceling old request.
             if (pf.currentCallbackId !== false) {
                 cancelCallback(pf.currentCallbackId);
             }
 
-            formData = serializeFormValues(formValues);
-            callbackName = buildCallbackId(form);
+            if (beforeSubmitValue === false) {
+                pf.formValues = false;
+                paused = false;
+                return;
+            }
 
+            addLoadingOverlay(form, pf.settings);
+
+            if (typeof beforeSubmitValue !== "undefined" && beforeSubmitValue !== true) {
+                formValues = beforeSubmitValue;
+            }
+
+            pf.formValues = formValues;
+
+            if (paused !== true) {
+                continueSubmission();
+            }
+        };
+
+        var continueSubmission = function () {
+            var formValues = pf.formValues;
+            var url;
+            var callbackName;
+            var formData;
+            var scriptURL;
+            var script;
+
+            if (formValues === false) {
+                return;
+            }
+
+            pf.formValues = false;
+
+            url = pf.form.getAttribute("action");
+            if (pf.settings.actionUrl !== false) {
+                // TODO: check if the url is valid
+                url = pf.settings.actionUrl;
+            }
+
+            callbackName = buildCallbackId(pf.form);
+            formData = serializeFormValues(formValues);
             scriptURL = url + "?callback=" + callbackName + "&" + formData;
 
             callbackList[callbackName] = {
@@ -415,16 +463,15 @@
             script.src = scriptURL;
             callbackList[callbackName].scriptDom = script;
 
-            removeFormMessaging(form);
-            addLoadingOverlay(form, pf.settings);
-
             pf.callbacks.onSubmit({
                 submit: callbackList[callbackName],
                 result: false,
             });
 
             if (pf.settings.timeout) {
-                setTimeout(function () {timeoutCheck(callbackList[callbackName]);}, pf.settings.timeout);
+                setTimeout(function () {
+                    timeoutCheck(callbackList[callbackName]);
+                }, pf.settings.timeout);
             }
         };
 
@@ -604,7 +651,7 @@
         }
     };
 
-    if (typeof root === "object") {
+    if (typeof root === "object" && typeof root[namePardotFormHandlerJS] === "undefined") {
         root[namePardotFormHandlerJS] = pfhjsInterface;
     }
 

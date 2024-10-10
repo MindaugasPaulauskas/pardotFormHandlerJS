@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pardotFormHandlerJS Demo - 002</title>
+<meta charset="utf-8">
+<meta name="description" content="Demo features a simple html form with static callbacks - pardotFormHandlerJS">
+<meta name="keywords" content="Pardot, Pardot Form Handler, Marketing Cloud Account Engagement, pardotFormHandlerJS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link data-comment="MAIN STYLES" rel="stylesheet" href="/pardotFormHandlerJS/demo/resources/styles.css">
+<!-- Demo Resources Start -->
+<script src="/pardotFormHandlerJS/pardot-form-handler-js.min.js"></script>
+<style>
+    .pardot-demo-2{position:relative;padding:5px;border:1px solid #ccc;max-width:400px;}
+    .pardot-demo-2 input{margin:0 0 5px;}
+    .pardot-demo-2 .error{margin:-5px 0 5px;color:#f00;font-size:0.9em;}
+</style>
+<!-- Demo Resources End -->
+</head>
+<body>
+<h2 id="demo-2">Demo 2: Form with static callbacks (and custom validation)</h2>
+<p>This demo features a simple html form with static callbacks. Static error callback does not specify what is wrong with users submitted values. This can be circumvented by adding custom validation. Custom validation allows better control on user inputs than the one available in Pardot Handler settings. In this demo you can enable or disable custom validation.</p>
+
+<input type="checkbox" id="demo-2-enable-custom-validation" name="demo-2-enable-custom-validation" value="true" checked><label for="demo-2-enable-custom-validation">Enable custom validation</label>
+
+<form action="https://pardothandler.onrender.com/pardot-handler-simulation-with-static-success-and-error-locations" class="pardot-demo-2">
+    <div><label for="demo2-name">Name*:</label></div>
+    <div><input id="demo2-name" name="name"></div>
+    <div><label for="demo2-surname">Surname:</label></div>
+    <div><input id="demo2-surname" name="surname"></div>
+    <div><label for="demo2-email">Email*:</label></div>
+    <div><input id="demo2-email" name="email"></div>
+    <div><button type="submit">Submit</button></div>
+</form>
+<script>
+(() => {
+    let pardotDemoForm2 = window.pardotFormHandlerJS.setupForm(document.querySelector(".pardot-demo-2"));
+    pardotDemoForm2.onBeforeSubmit((formValues, form) => {
+        console.log("Demo2: [onBeforeSubmit] formValues:", formValues);
+
+        if (!document.querySelector('#demo-2-enable-custom-validation').checked) {
+            return true;
+        }
+
+        let errors = 0;
+        const removeErrors = () => {
+            const errorElements = document.querySelectorAll(".pardot-demo-2 .error");
+            errorElements.forEach((el) => el.remove());
+        };
+        const printError = (id, message) => {
+            let errorElement = document.createElement("div");
+            errorElement.classList.add("error");
+            errorElement.innerHTML = message;
+            document.getElementById(id).after(errorElement);
+            errors++;
+            console.log(id, message);
+        };
+
+        const name = document.getElementById("demo2-name").value;
+        const email = document.getElementById("demo2-email").value;
+
+        removeErrors();
+
+        if (name === "") {
+            printError("demo2-name", "Name is required");
+        }
+        else if (name.trim() === "") {
+            printError("demo2-name", "Name cant have only whitespace charecters");
+        }
+        else if (name.trim().length < 2) {
+            printError("demo2-name", "Name has to have at least 2 symbols");
+        }
+
+        if (email === "") {
+            printError("demo2-email", "Email is required");
+        } else if (
+            !String(email).toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)
+        ) {
+            printError("demo2-email", "Email is not correct");
+        }
+
+        console.log("errors:", errors);
+
+        if (errors) {
+            return false;
+        }
+    });
+    pardotDemoForm2.onSubmit(function(detail) {
+        console.log("Demo2: [onSubmit] detail:", detail);
+    });
+    pardotDemoForm2.onCancel(function(detail) {
+        console.log("Demo2: [onCancel] detail:", detail);
+    });
+    pardotDemoForm2.onSuccess(function(detail) {
+        console.log("Demo2: [onSuccess] detail:", detail);
+    });
+    pardotDemoForm2.onError(function(detail) {
+        console.log("Demo2: [onError] detail:", detail);
+    });
+    pardotDemoForm2.onComplete(function(detail) {
+        console.log("Demo2: [onComplete] detail:", detail);
+    });
+})();
+</script>
+</body>
+</html>

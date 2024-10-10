@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pardotFormHandlerJS Demo - 001</title>
+<meta charset="utf-8">
+<meta name="description" content="This demo features a simple html form with submissions to Pardot - pardotFormHandlerJS">
+<meta name="keywords" content="Pardot, Pardot Form Handler, Marketing Cloud Account Engagement, pardotFormHandlerJS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link data-comment="MAIN STYLES" rel="stylesheet" href="/pardotFormHandlerJS/demo/resources/styles.css">
+<!-- Demo Resources Start -->
+<script src="/pardotFormHandlerJS/pardot-form-handler-js.min.js"></script>
+<style>
+    .pardot-demo{position:relative;padding:5px;border:1px solid #ccc;max-width:400px;}
+    .pardot-demo input{margin:0 0 5px;}
+</style>
+<!-- Demo Resources End -->
+</head>
+<body>
+<h2 id="demo-1">Demo 1: Simple form (with dynamic callbacks)</h2>
+<p>This demo features a simple html form with submissions to Pardot, and features almost default settings, showcasing out of the box functionality.</p>
+
+<form action="https://pardothandler.onrender.com/pardot-handler-simulation-with-dynamic-success-and-error-location" class="pardot-demo">
+    <label for="name">Name:</label><br>
+    <input id="name" name="name"><br>
+    <label for="email">Email:</label><br>
+    <input id="email" type="email" name="email"><br>
+    <button type="submit">Submit</button>
+</form>
+<script>
+(() => {
+    let pardotDebugForm = window.pardotFormHandlerJS.setupForm(
+        document.querySelector(".pardot-demo"),
+        {successMessage: "Success!"}
+    )
+        .setSettings({
+            successMessage: "More Success!",
+        })
+        .onBeforeSubmit(function(formValues, form) {
+            console.log("Demo1: [onBeforeSubmit] formValues:", formValues);
+
+            // Example code for pausing the submission.
+            console.log("Demo1: [pause]");
+            pardotDebugForm.pause();
+            setTimeout(() => {
+                console.log("Demo1: [unpause]");
+                pardotDebugForm.unpause();
+            }, 1000);
+        })
+        .onSubmit(function(detail) {
+            console.log("Demo1: [onSubmit] detail:", detail);
+        })
+        .onCancel(function(detail) {
+            console.log("Demo1: [onCancel] detail:", detail);
+        })
+        .onSuccess(function(detail) {
+            console.log("Demo1: [onSuccess] detail:", detail);
+        })
+        .onError(function(detail) {
+            console.log("Demo1: [onError] detail:", detail);
+        })
+        .onComplete(function(detail) {
+            console.log("Demo1: [onComplete] detail:", detail);
+        });
+
+    pardotDebugForm.setSettings({
+        successMessage: "Even more Success!",
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pardotFormHandlerJS Demo - 004</title>
+<meta charset="utf-8">
+<meta name="description" content="Demo features SweetAlert2 modal and simple html form with submissions to Pardot - pardotFormHandlerJS">
+<meta name="keywords" content="Pardot, Pardot Form Handler, Marketing Cloud Account Engagement, pardotFormHandlerJS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link data-comment="MAIN STYLES" rel="stylesheet" href="/pardotFormHandlerJS/demo/resources/styles.css">
+<!-- Demo Resources Start -->
+<script src="/pardotFormHandlerJS/pardot-form-handler-js.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.1/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.1/dist/sweetalert2.all.min.js"></script>
+<style>
+    .pardot-demo-4{position:relative;padding:5px;}
+    .pardot-demo-4 input{margin:0 0 5px;}
+</style>
+<!-- Demo Resources End -->
+</head>
+<body>
+<h2 id="demo-4">Demo 4: Form in modal (<a href="https://sweetalert2.github.io/" target="_blank">SweetAlert2</a>)</h2>
+<p>This demo features a simple html form with submissions to Pardot, that is shown within SweetAlert2 modal, default success messaging is replaced by SweetAlert2 success alert.</p>
+
+<div class="pardot-demo-4-form-container" style="display:none">
+    <form action="https://pardothandler.onrender.com/pardot-handler-simulation-with-dynamic-success-and-error-location" class="pardot-demo-4">
+        <label for="demo4-name">Name:</label><br>
+        <input class="swal2-input"  id="demo4-name" name="name"><br>
+        <label for="demo4-email">Email:</label><br>
+        <input class="swal2-input" id="demo4-email" type="email" name="email"><br>
+        <button class="swal2-confirm swal2-styled" type="submit">Submit</button>
+    </form>
+</div>
+<a class="demo-4-open-modal" href="#">Open SweetAlert2 modal</a>
+<script>
+(() => {
+    // Setting up Pardot form.
+    let pardotDemoForm4 = window.pardotFormHandlerJS
+        .setupForm(document.querySelector(".pardot-demo-4"))
+        .setSettings({successMessage: false, loadingOverlayBgColor: "rgba(255,255,255,0.5)"})
+        .onBeforeSubmit(function(formValues, form) {
+            console.log("Demo4: [onBeforeSubmit] formValues:", formValues);
+        })
+        .onSubmit(function(detail) {
+            console.log("Demo4: [onSubmit] detail:", detail);
+        })
+        .onCancel(function(detail) {
+            console.log("Demo4: [onCancel] detail:", detail);
+        })
+        .onSuccess(function(detail) {
+            console.log("Demo4: [onSuccess] detail:", detail);
+            Swal.clickConfirm();
+        })
+        .onError(function(detail) {
+            console.log("Demo4: [onError] detail:", detail);
+        })
+        .onComplete(function(detail) {
+            console.log("Demo4: [onComplete] detail:", detail);
+        });
+
+    // Setting up Modal with form attaching and detaching
+    let openModalWindow = () => {
+    	Swal.fire({
+            title: "Demo 4 Form",
+            html: document.querySelector('.pardot-demo-4'),
+            showCloseButton: true,
+            showConfirmButton: false,
+            preConfirm: () => {
+                return 'confirmed'
+            },
+            willClose: () => {
+                document.querySelector('.pardot-demo-4-form-container').appendChild(document.querySelector('.pardot-demo-4'));
+                console.log(document.querySelector('.pardot-demo-4'))
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Success!",
+                    text: "Your submission was acepted.",
+                    icon: "success"
+                });
+            }
+        });
+    };
+
+    // Seting up click
+    document.querySelector('.demo-4-open-modal').addEventListener('click', (e) => {
+        e.preventDefault();
+        openModalWindow();
+    });
+})();
+</script>
+</body>
+</html>

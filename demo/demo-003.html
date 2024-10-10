@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pardotFormHandlerJS Demo - 003</title>
+<meta charset="utf-8">
+<meta name="description" content="Demo features a simple html form with submissions to Pardot, and features custom success message - pardotFormHandlerJS">
+<meta name="keywords" content="Pardot, Pardot Form Handler, Marketing Cloud Account Engagement, pardotFormHandlerJS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link data-comment="MAIN STYLES" rel="stylesheet" href="/pardotFormHandlerJS/demo/resources/styles.css">
+<!-- Demo Resources Start -->
+<script src="/pardotFormHandlerJS/pardot-form-handler-js.min.js"></script>
+<style>
+    .pardot-demo-3{position:relative;padding:5px;border:1px solid #ccc;max-width:400px;}
+    .pardot-demo-3 input{margin:0 0 5px;}
+</style>
+<!-- Demo Resources End -->
+</head>
+<body>
+<h2 id="demo-3">Demo 3: Form (with custom success messaging)</h2>
+<p>This demo features a simple html form with submissions to Pardot, and features custom success message, showcasing use of callback functions, in this case <i>onSuccess()</i> function is used.</p>
+
+<form action="https://pardothandler.onrender.com/pardot-handler-simulation-with-dynamic-success-and-error-location" class="pardot-demo-3">
+    <label for="demo3-name">Name:</label><br>
+    <input id="demo3-name" name="name"><br>
+    <label for="demo3-email">Email:</label><br>
+    <input id="demo3-email" type="email" name="email"><br>
+    <button type="submit">Submit</button>
+</form>
+<script>
+(() => {
+    let pardotDemoForm3 = window.pardotFormHandlerJS
+        .setupForm(document.querySelector(".pardot-demo-3"))
+        .setSettings({successMessage: false,})
+        .onBeforeSubmit(function(formValues, form) {
+            console.log("Demo3: [onBeforeSubmit] formValues:", formValues);
+        })
+        .onSubmit(function(detail) {
+            console.log("Demo3: [onSubmit] detail:", detail);
+        })
+        .onCancel(function(detail) {
+            console.log("Demo3: [onCancel] detail:", detail);
+        })
+        .onSuccess(function(detail) {
+            console.log("Demo3: [onSuccess] detail:", detail);
+
+            let successMessage = document.createElement("div");
+            successMessage.style.position = "absolute";
+            successMessage.style.background = "#fff";
+            successMessage.style.cursor = "pointer";
+            successMessage.style.top = "0";
+            successMessage.style.bottom = "0";
+            successMessage.style.left = "0";
+            successMessage.style.right = "0";
+            successMessage.innerHTML = "<div style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#485;animation:demo-zoom 1s ease infinite;'>Well Done!</div><style>@keyframes demo-zoom{0%{transform:translate(-50%,-50%)scale(1,1);}50%{transform:translate(-50%,-50%)scale(2,2);}100%{transform:translate(-50%,-50%)scale(1,1);}}</style>"
+            document.querySelector('.pardot-demo-3').appendChild(successMessage);
+            successMessage.addEventListener("click", e => e.target.remove());
+        })
+        .onError(function(detail) {
+            console.log("Demo3: [onError] detail:", detail);
+        })
+        .onComplete(function(detail) {
+            console.log("Demo3: [onComplete] detail:", detail);
+        });
+})();
+</script>
+</body>
+</html>

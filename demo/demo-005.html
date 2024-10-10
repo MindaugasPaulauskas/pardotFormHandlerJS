@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pardotFormHandlerJS Demo - 004</title>
+<meta charset="utf-8">
+<meta name="description" content="Demo features tingle.js modal and simple html form with submissions to Pardot - pardotFormHandlerJS">
+<meta name="keywords" content="Pardot, Pardot Form Handler, Marketing Cloud Account Engagement, pardotFormHandlerJS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link data-comment="MAIN STYLES" rel="stylesheet" href="/pardotFormHandlerJS/demo/resources/styles.css">
+<!-- Demo Resources Start -->
+<script src="/pardotFormHandlerJS/pardot-form-handler-js.min.js"></script>
+<link rel="stylesheet" href="https://tingle.robinparisi.com/tingle/tingle.css">
+<script src="https://tingle.robinparisi.com/tingle/tingle.js"></script>
+<style>
+    .pardot-demo-5{position:relative;padding:5px;}
+    .pardot-demo-5 input{margin:0 0 5px;}
+</style>
+<!-- Demo Resources End -->
+</head>
+<body>
+<h2 id="demo-5">Demo 5: Form in modal (<a href="https://tingle.robinparisi.com/" target="_blank">tingle.js</a>)</h2>
+<p>This demo features a simple html form with submissions to Pardot, that is shown within tingle.js modal</p>
+
+<div class="pardot-demo-5-form-container" style="display:none">
+    <div>
+        <h2>Please fill the form in</h2>
+        <form action="https://pardothandler.onrender.com/pardot-handler-simulation-with-dynamic-success-and-error-location" class="pardot-demo-5">
+            <label for="demo5-name">Name:</label><br>
+            <input class="swal2-input"  id="demo4-name" name="name"><br>
+            <label for="demo5-email">Email:</label><br>
+            <input class="swal2-input" id="demo4-email" type="email" name="email"><br>
+            <button class="swal2-confirm swal2-styled" type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+<a class="demo-5-open-modal" href="#">Open tingle.js modal</a>
+<script>
+(() => {
+    // Setting up Pardot form.
+    let pardotDemoForm5 = window.pardotFormHandlerJS
+        .setupForm(document.querySelector(".pardot-demo-5"))
+        .setSettings({loadingOverlayBgColor: "rgba(255,255,255,0.5)"})
+        .onBeforeSubmit(function(formValues, form) {
+            console.log("Demo5: [onBeforeSubmit] formValues:", formValues);
+        })
+        .onSubmit(function(detail) {
+            console.log("Demo5: [onSubmit] detail:", detail);
+        })
+        .onCancel(function(detail) {
+            console.log("Demo5: [onCancel] detail:", detail);
+        })
+        .onSuccess(function(detail) {
+            console.log("Demo5: [onSuccess] detail:", detail);
+            Swal.clickConfirm();
+        })
+        .onError(function(detail) {
+            console.log("Demo5: [onError] detail:", detail);
+        })
+        .onComplete(function(detail) {
+            console.log("Demo5: [onComplete] detail:", detail);
+        });
+
+    // Setting up Modal with form attaching.
+    const setupModal = () => {
+        // console.log('looking for tingle')
+        if (typeof tingle === "undefined") {
+            
+            setTimeout(()=>setupModal(), 50);
+            return;
+        }
+        // console.log('tingle found')
+
+        // instanciate new modal
+        const modal = new tingle.modal({
+            footer: false,
+            stickyFooter: false,
+            closeMethods: ['overlay', 'button', 'escape'],
+            onOpen: () => {
+                console.log('tingle.js modal open');
+            },
+            onClose: () => {
+                console.log('tingle.js modal closed');
+            },
+            beforeClose: () => {
+                console.log('tingle.js modal beforeClose');
+                // Here goes some logic
+                return true; // close the modal
+                return false; // nothing happens
+            }
+        });
+
+        modal.setContent(document.querySelector('.pardot-demo-5-form-container > div'));
+        
+        let openModalWindow = () => {
+            modal.open();
+        };
+
+        document.querySelector('.demo-5-open-modal').addEventListener('click', (e) => {
+            e.preventDefault();
+            openModalWindow();
+        });
+    };
+    setupModal();
+})();
+</script>
+</body>
+</html>
