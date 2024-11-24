@@ -53,7 +53,7 @@
             successMessage.style.right = "0";
             successMessage.innerHTML = "<div style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#485;animation:demo-zoom 1s ease infinite;'>Well Done!</div><style>@keyframes demo-zoom{0%{transform:translate(-50%,-50%)scale(1,1);}50%{transform:translate(-50%,-50%)scale(2,2);}100%{transform:translate(-50%,-50%)scale(1,1);}}</style>"
             document.querySelector('.pardot-demo-3').appendChild(successMessage);
-            successMessage.addEventListener("click", e => e.target.remove());
+            successMessage.addEventListener("click", e => successMessage.remove());
         })
         .onError(function(detail) {
             console.log("Demo3: [onError] detail:", detail);

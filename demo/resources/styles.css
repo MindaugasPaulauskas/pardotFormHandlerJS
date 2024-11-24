@@ -6,9 +6,10 @@ h2{font-size:1.3em;}
 .pfhjs{background:#ccc;}
 h1 .pfhjs{background:#000;color:#fff;}
 section,footer{margin:2em 0;}
+pre{background:#eee;font-family:monospace;overflow:auto;padding:9px;}
 .server-check{position:relative;margin:5px 0;border:1px solid #000;max-width:400px;padding:5px;background:#ccc;}
 .server-check .text{position:relative;color:#fff;font-size:0.9em;}
-.server-check .loader{position:absolute;width:0%;height:100%;top:0;left:0;background:#000;transition:width 70s;transition-timing-function:linear;}
+.server-check .loader{position:absolute;width:0%;height:100%;top:0;left:0;background:#000;transition:width 70s;transition-timing-function:ease-out;}
 .server-check.loading .loader{width:100%}
 .server-check.failure{background:#dd1a21;}
 .server-check.success{background:#147f3c;}

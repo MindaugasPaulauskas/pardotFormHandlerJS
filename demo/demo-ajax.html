@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pardotFormHandlerJS Demo - AJAX</title>
+<meta charset="utf-8">
+<meta name="description" content="Demo showcases AJAX submissions to Pardot - pardotFormHandlerJS">
+<meta name="keywords" content="Pardot, Pardot Form Handler, Marketing Cloud Account Engagement, pardotFormHandlerJS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link data-comment="MAIN STYLES" rel="stylesheet" href="/pardotFormHandlerJS/demo/resources/styles.css">
+<!-- Demo Resources Start -->
+<script src="/pardotFormHandlerJS/pardot-form-handler-js.min.js"></script>
+<!-- Demo Resources End -->
+</head>
+<body>
+<h2 id="demo-ajax">AJAX Demo: AJAX call</h2>
+<p>This demo is a showcase of an AJAX functionality.</p>
+<p>Copy below code to your console and check the results:</p>
+<pre>
+pardotFormHandlerJS.ajax(
+    "https://pardothandler.onrender.com/pardot-handler-simulation-with-dynamic-success-and-error-location",
+    {
+        name: "Mindaugas",
+        email: "fake@email.io"
+    },
+    {
+        successMessage: "You have subscribed!",
+        timeoutMessage: "Something went wrong. Please try again later."
+    }
+)
+    .onSubmit(function(detail) {
+        console.log("ajax: [onSubmit] detail:", detail);
+    })
+    .onSuccess(function(detail) {
+        console.log("ajax: [onSuccess] detail:", detail);
+    })
+    .onError(function(detail) {
+        console.log("ajax: [onError] detail:", detail);
+    })
+    .onComplete(function(detail) {
+        console.log("ajax: [onComplete] detail:", detail);
+    });
+</pre>
+</body>
+</html>

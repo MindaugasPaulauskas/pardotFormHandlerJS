@@ -60,6 +60,8 @@
 <section data-comment="DEMO 3" pardotFormHandlerJS-load-demo="/pardotFormHandlerJS/demo/demo-003.html"></section>
 <section data-comment="DEMO 4" pardotFormHandlerJS-load-demo="/pardotFormHandlerJS/demo/demo-004.html"></section>
 <section data-comment="DEMO 5" pardotFormHandlerJS-load-demo="/pardotFormHandlerJS/demo/demo-005.html"></section>
+<section data-comment="AJAX DEMO" pardotFormHandlerJS-load-demo="/pardotFormHandlerJS/demo/demo-ajax.html"></section>
+<section data-comment="UTIL DEMO" pardotFormHandlerJS-load-demo="/pardotFormHandlerJS/demo/demo-util.html"></section>
 <script data-comment="DEMO LOADER">
 (()=>{
     let demoLoader = {
@@ -123,6 +125,14 @@
 
                 demoContainer.setAttribute("pardotFormHandlerJS-demo-loaded-from", ` ${location.protocol}//${location.host}${demoHtmlLocation}`);
                 demoContainer.removeAttribute("pardotFormHandlerJS-load-demo");
+
+                // Add link to a standalone demo.
+                let demoHeader = demoContainer.getElementsByTagName("h2")[0];
+                let demoNumber = demoHeader.innerHTML.substring(0, demoHeader.innerHTML.indexOf(":"));
+                if (demoNumber.indexOf("Demo") === 0) {
+                    demoHeader.innerHTML = `<a href="${location.protocol}//${location.host}${demoHtmlLocation}" target="_blank">${demoNumber}</a>${demoHeader.innerHTML.substring(demoNumber.length)}`;
+                }
+
                 // Load next demo.
                 demoLoader.loadDemo();
             }

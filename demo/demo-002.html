@@ -37,15 +37,18 @@
     pardotDemoForm2.onBeforeSubmit((formValues, form) => {
         console.log("Demo2: [onBeforeSubmit] formValues:", formValues);
 
+        const removeErrors = () => {
+            const errorElements = document.querySelectorAll(".pardot-demo-2 .error");
+            errorElements.forEach((el) => el.remove());
+        };
+
+        removeErrors();
+
         if (!document.querySelector('#demo-2-enable-custom-validation').checked) {
             return true;
         }
 
         let errors = 0;
-        const removeErrors = () => {
-            const errorElements = document.querySelectorAll(".pardot-demo-2 .error");
-            errorElements.forEach((el) => el.remove());
-        };
         const printError = (id, message) => {
             let errorElement = document.createElement("div");
             errorElement.classList.add("error");
@@ -57,8 +60,6 @@
 
         const name = document.getElementById("demo2-name").value;
         const email = document.getElementById("demo2-email").value;
-
-        removeErrors();
 
         if (name === "") {
             printError("demo2-name", "Name is required");

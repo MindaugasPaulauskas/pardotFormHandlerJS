@@ -1,17 +1,21 @@
 /*!
- * pardotFormHandlerJS v.0.2.0
+ * pardotFormHandlerJS v.1.0.0
  * https://github.com/MindaugasPaulauskas/pardotFormHandlerJS/
  *
  * Copyright (c) 2024 Mindaugas Paulauskas
  * Released under the MIT license
  * https://github.com/MindaugasPaulauskas/pardotFormHandlerJS/LICENSE
  *
- * Date: 2024-10-10
+ * Date: 2024-11-24
  */
 (function (root) {
+    var doc = document;
+
     var namePardotFormHandlerJS = "pardotFormHandlerJS";
     var namePardotFormHandlerJSerror = namePardotFormHandlerJS + ".Error";
     var namePardotFormHandlerJSsuccess = namePardotFormHandlerJS + ".Success";
+
+    // CSS class names.
     var classPrefix = "pardot-form-handler-js--";
     var classJsonpCallback = classPrefix + "jsonp-callback";
     var classOverlay = classPrefix + "overlay";
@@ -19,14 +23,52 @@
     var classMessageContainer = classMessage + "-container";
     var classLoaderSpin = classPrefix + "loader-spin";
 
+    // Callback names.
+    var _onBeforeSubmit = "onBeforeSubmit";
+    var _onSubmit = "onSubmit";
+    var _onCancel = "onCancel";
+    var _onSuccess = "onSuccess";
+    var _onError = "onError";
+    var _onComplete = "onComplete";
+
+    // Settings names.
+    var _actionUrl = "actionUrl";
+    var _successMessage = "successMessage";
+    var _defaultErrorMessage = "defaultErrorMessage";
+    var _timeout = "timeout";
+    var _timeoutMessage = "timeoutMessage";
+    var _resetFormAfterSuccess = "resetFormAfterSuccess";
+    var _showLoadingOverlay = "showLoadingOverlay";
+    var _loadingOverlayBgColor = "loadingOverlayBgColor";
+    var _loadingOverlayInnerHtml = "loadingOverlayInnerHtml";
+    var _showFormMessaging = "showFormMessaging";
+    var _messageErrorBgColor = "messageErrorBgColor";
+    var _messageErrorTxtColor = "messageErrorTxtColor";
+    var _messageSuccessBgColor = "messageSuccessBgColor";
+    var _messageSuccessTxtColor = "messageSuccessTxtColor";
+    var _messagePadding = "messagePadding";
+    var _messageMargin = "messageMargin";
+    var _messageBorderRadius = "messageBorderRadius";
+
+    // Form variables.
+    var _currentCallbackId = "currentCallbackId";
+
+    var setEventListener = function(target, type, listener) {
+        target.addEventListener(type, listener);
+    };
+
+    var unsetEventListener = function(target, type, listener) {
+        target.removeEventListener(type, listener);
+    };
+
     var hashCode = function (string) {
         var hash = 0;
         var i;
-        var char;
+        var charecter;
 
         for (i = 0; i < string.length; i++) {
-            char = string.charCodeAt(i);
-            hash = (hash << 5) - hash + char;
+            charecter = string.charCodeAt(i);
+            hash = (hash << 5) - hash + charecter;
             hash |= 0;
         }
 
@@ -109,10 +151,10 @@
 
     var serializeFormValues = function (formValues) {
         var key;
-        var value;
+        var i;
         var result = [];
         var encode = function(value) {
-            return encodeURIComponent(value)
+            return encodeURIComponent(value);
         };
 
         for (key in formValues) {
@@ -134,26 +176,22 @@
     };
 
     var getRandomChars = function (length) {
-        var result = "";
-        var i;
-        var chars = "0123456789abcdefghijklmnopqrstuvwxyz";
-
-        for (i = 0; i < length; i++) {
-          result += chars.charAt(Math.floor(Math.random() * 36));
+        for (var result = ''; result.length < length;) {
+            result = (Math.random().toString(36) + result).substr(2, length);
         }
 
         return result;
     };
 
-    var buildCallbackId = function (form) {
+    var buildCallbackId = function (serializedFormValues) {
         var staticPart = classJsonpCallback;
         var timePart = new Date().getTime().toString(36);
         var randomPart = getRandomChars(8);
-        var formHashPart = hashCode(serializeForm(form)).toString(35).replace("-", "z");
+        var formHashPart = (hashCode(serializedFormValues) >>> 0).toString(36);
         var id = [staticPart, timePart, randomPart, formHashPart].join("-");
 
         if (typeof callbackList[id] !== "undefined") {
-            id = buildCallbackId(form);
+            id = buildCallbackId(serializedFormValues);
         }
 
         return id;
@@ -162,19 +200,20 @@
     var addLoadingOverlay = function (form, settings) {
         var overlay;
 
-        if (settings.showLoadingOverlay !== true) {
+        if (settings[_showLoadingOverlay] !== true) {
             return;
         }
 
-        overlay = document.createElement("div");
+        overlay = doc.createElement("div");
         overlay.className = classOverlay;
-        overlay.style.position = "absolute";
-        overlay.style.top = "0";
-        overlay.style.bottom = "0";
-        overlay.style.left = "0";
-        overlay.style.right = "0";
-        overlay.style.background = settings.loadingOverlayBgColor;
-        overlay.innerHTML = settings.loadingOverlayInnerHtml;
+        var style = overlay.style;
+        style.position = "absolute";
+        style.top = "0";
+        style.bottom = "0";
+        style.left = "0";
+        style.right = "0";
+        style.background = settings[_loadingOverlayBgColor];
+        overlay.innerHTML = settings[_loadingOverlayInnerHtml];
 
         form.appendChild(overlay);
     };
@@ -191,34 +230,27 @@
     var addFormMessaging = function (form, detail) {
         var settings = detail.submit.pardotForm.settings;
         var errors = false;
-        var errorBgColor = settings.messageErrorBgColor;
-        var errorTxtColor = settings.messageErrorTxtColor;
-        var successBgColor = settings.messageSuccessBgColor;
-        var successTxtColor = settings.messageSuccessTxtColor;
         var message = false;
-        var messageBgColor = "#495467";
+        var messageBgColor = "#555";
         var messageTxtColor = "#fff";
-        var messagePadding = settings.messagePadding;
-        var messageBorderRadius = settings.messageBorderRadius;
-        var messageMargin = settings.messageMargin;
         var messageClass = classMessage;
         var messageElement = false;
         var messageContainer;
 
-        if (settings.showFormMessaging !== true) {
+        if (settings[_showFormMessaging] !== true) {
             return;
         }
 
         if (detail.result.errors === true || detail.result.errors === "true") {
             errors = true;
             messageClass += " errors";
-            messageBgColor = errorBgColor;
-            messageTxtColor = errorTxtColor;
+            messageBgColor = settings[_messageErrorBgColor];
+            messageTxtColor = settings[_messageErrorTxtColor];
         } else {
             messageClass += " success";
-            messageBgColor = successBgColor;
-            messageTxtColor = successTxtColor;
-            message = settings.successMessage;
+            messageBgColor = settings[_messageSuccessBgColor];
+            messageTxtColor = settings[_messageSuccessTxtColor];
+            message = settings[_successMessage];
         }
 
         if (typeof detail.result.errorMessage === "string") {
@@ -229,17 +261,18 @@
             }
             message = message.replaceAll("~~~", "<br>");
         } else if (errors === true) {
-            message = settings.defaultErrorMessage;
+            message = settings[_defaultErrorMessage];
         }
 
         if (message) {
-            messageElement = document.createElement("div");
+            messageElement = doc.createElement("div");
             messageElement.className = messageClass;
-            messageElement.style.background = messageBgColor;
-            messageElement.style.padding = messagePadding;
-            messageElement.style.borderRadius = messageBorderRadius;
-            messageElement.style.margin = messageMargin;
-            messageElement.style.color = messageTxtColor;
+            var style = messageElement.style;
+            style.background = messageBgColor;
+            style.padding = settings[_messagePadding];
+            style.borderRadius = settings[_messageBorderRadius];
+            style.margin = settings[_messageMargin];
+            style.color = messageTxtColor;
             messageElement.innerHTML = message;
 
             messageContainer = form.querySelector("." + classMessageContainer);
@@ -250,7 +283,7 @@
             messageContainer.insertBefore(messageElement, messageContainer.firstChild);
         }
 
-        if (errors === false && detail.submit.pardotForm.settings.resetFormAfterSuccess === true) {
+        if (errors === false && settings[_resetFormAfterSuccess] === true) {
             detail.submit.formDom.reset();
         }
     };
@@ -264,98 +297,163 @@
         }
     };
 
-    var defaultSettings = {
-        actionUrl: false,
-        successMessage: "Success! Thank you for submission.",
-        resetFormAfterSuccess: true,
-        defaultErrorMessage: "Submission failed! Please enter required information.",
-        timeout: 5000,
-        timeoutMessage: "Oops! Request has timed out. Please try again later.",
-        showLoadingOverlay: true,
-        loadingOverlayBgColor: "rgba(0,0,0,0.1)",
-        loadingOverlayInnerHtml: "<style>@keyframes " + classLoaderSpin + "{100%{transform:rotate(360deg);}}</style><div style='position:absolute;top:50%;left:50%;width:50px;height:50px;box-sizing:border-box;margin:-25px 0 0 -25px;border:#fff 4px solid;border-radius:25px;animation:" + classLoaderSpin + " 3s linear infinite;border-color:#666 transparent transparent;'></div>",
-        showFormMessaging: true,
-        messageErrorBgColor: "#dd1a21",
-        messageErrorTxtColor: "#fff",
-        messageSuccessBgColor: "#147f3c",
-        messageSuccessTxtColor: "#fff",
-        messagePadding: "4px",
-        messageMargin: "0 0 4px",
-        messageBorderRadius: "4px",
+    var callbackList = [];
+
+    var defaultCallbackFunction = function () {
+        return true;
     };
 
-    var callbackList = [];
+    var getCallbackAssignmentFunction = function (obj, callbackName, numberOfParameters) {
+        return function (callback) {
+            if (numberOfParameters == 2) {
+                obj.callbacks[callbackName] = function(parameter1, parameter2) {return callback(parameter1, parameter2);};
+            }
+            else {
+                obj.callbacks[callbackName] = function(parameter1) {return callback(parameter1);};
+            }
+            return obj;
+        };
+    };
+
+    var AJAX = function (url, values, initialSettings) {
+        var pf = this;
+
+        // Deal with initials settings.
+        pf.settings = JSON.parse(JSON.stringify(defaultSettings));
+
+        var settings = pf.settings;
+
+        for (var key in initialSettings) {
+            if (typeof settings[key] !== "undefined") {
+                settings[key] = initialSettings[key];
+            }
+        }
+
+        pf[_currentCallbackId] = false;
+
+        pf.callbacks = {};
+        var callbacks = this.callbacks;
+        callbacks[_onSubmit] = defaultCallbackFunction;
+        callbacks[_onSuccess] = defaultCallbackFunction;
+        callbacks[_onError] = defaultCallbackFunction;
+        callbacks[_onComplete] = defaultCallbackFunction;
+
+        pf[_onSubmit] = getCallbackAssignmentFunction(pf, _onSubmit);
+        pf[_onSuccess] = getCallbackAssignmentFunction(pf, _onSuccess);
+        pf[_onError] = getCallbackAssignmentFunction(pf, _onError);
+        pf[_onComplete] = getCallbackAssignmentFunction(pf, _onComplete);
+
+        var callbackName;
+        var formData;
+        var scriptURL;
+        var script;
+
+        formData = serializeFormValues(values);
+        callbackName = buildCallbackId(formData);
+        scriptURL = url + "?callback=" + callbackName + "&" + formData;
+
+        callbackList[callbackName] = {
+            id: callbackName,
+            formDom: false,
+            pardotForm: pf,
+            url: scriptURL,
+            values: values,
+            scriptDom: false
+        };
+
+        pf[_currentCallbackId] = callbackName;
+
+        script = doc.createElement("script");
+        doc.body.appendChild(script);
+        script.src = scriptURL;
+        callbackList[callbackName].scriptDom = script;
+        callbackList[callbackName].formDom = script;
+
+        setTimeout(function() {
+            callbacks[_onSubmit]({
+                submit: callbackList[callbackName],
+                result: false
+            });
+        }, 1);
+
+        if (settings[_timeout]) {
+            setTimeout(function () {
+                timeoutCheck(callbackList[callbackName]);
+            }, settings[_timeout]);
+        }
+
+        var onErrorEvent = function (event) {
+            callbacks[_onError](event.detail);
+            pf[_currentCallbackId] = false;
+            callbacks[_onComplete](event.detail);
+        };
+
+        setEventListener(script, namePardotFormHandlerJSerror, onErrorEvent);
+
+        var onSuccessEvent = function (event) {
+            callbacks[_onSuccess](event.detail);
+            pf[_currentCallbackId] = false;
+            callbacks[_onComplete](event.detail);
+        };
+
+        setEventListener(script, namePardotFormHandlerJSsuccess, onSuccessEvent);
+    };
 
     var PardotForm = function (form, initialSettings) {
         var pf = this;
-        this.form = form;
+        pf.form = form;
 
-        // Deal with initials settings
-        this.settings = JSON.parse(JSON.stringify(defaultSettings));
-        this.setSettings = function (settings) {
-            for (key in settings) {
-                if (typeof pf.settings[key] !== "undefined") {
-                    pf.settings[key] = settings[key];
+        // Deal with initials settings.
+        pf.settings = JSON.parse(JSON.stringify(defaultFormSettings));
+
+        var settings = pf.settings;
+
+        pf.setSettings = function (newSettings) {
+            for (var key in newSettings) {
+                if (typeof settings[key] !== "undefined") {
+                    settings[key] = newSettings[key];
                 }
             }
 
             return pf;
-        }
-        this.setSettings(initialSettings);
+        };
+        pf.setSettings(initialSettings);
 
-        this.currentCallbackId = false;
+        pf[_currentCallbackId] = false;
 
-        this.callbacks = {
-            onBeforeSubmit: function (formValues, form) {return true;},
-            onSubmit: function (detail) {},
-            onCancel: function (detail) {},
-            onSuccess: function (detail) {},
-            onError: function (detail) {},
-            onComplete: function (detail) {},
-        };
+        pf.callbacks = {};
+        var callbacks = this.callbacks;
+        callbacks[_onBeforeSubmit] = defaultCallbackFunction;
+        callbacks[_onSubmit] = defaultCallbackFunction;
+        callbacks[_onCancel] = defaultCallbackFunction;
+        callbacks[_onSuccess] = defaultCallbackFunction;
+        callbacks[_onError] = defaultCallbackFunction;
+        callbacks[_onComplete] = defaultCallbackFunction;
 
-        this.onBeforeSubmit = function (callback) {
-            pf.callbacks.onBeforeSubmit = function (formValues, form) {return callback(formValues, form);};
-            return pf;
-        };
-        this.onSubmit = function (callback) {
-            pf.callbacks.onSubmit = function (detail) {return callback(detail);};
-            return pf;
-        };
-        this.onCancel = function (callback) {
-            pf.callbacks.onCancel = function (detail) {return callback(detail);};
-            return pf;
-        };
-        this.onSuccess = function (callback) {
-            pf.callbacks.onSuccess = function (detail) {return callback(detail);};
-            return pf;
-        };
-        this.onError = function (callback) {
-            pf.callbacks.onError = function (detail) {return callback(detail);};
-            return pf;
-        };
-        this.onComplete = function (callback) {
-            pf.callbacks.onComplete = function (detail) {return callback(detail);};
-            return pf;
-        };
+        pf[_onBeforeSubmit] = getCallbackAssignmentFunction(pf, _onBeforeSubmit, 2);
+        pf[_onSubmit] = getCallbackAssignmentFunction(pf, _onSubmit);
+        pf[_onCancel] = getCallbackAssignmentFunction(pf, _onCancel);
+        pf[_onSuccess] = getCallbackAssignmentFunction(pf, _onSuccess);
+        pf[_onError] = getCallbackAssignmentFunction(pf, _onError);
+        pf[_onComplete] = getCallbackAssignmentFunction(pf, _onComplete);
 
-        this.destroy = function () {
-            pf.form.removeEventListener("submit", listenForSubmission);
-            pf.form.removeEventListener(namePardotFormHandlerJSerror, onErrorEvent);
-            pf.form.removeEventListener(namePardotFormHandlerJSsuccess, onSuccessEvent);
-            clearCallback(pf.currentCallbackId, "form destroyed");
+        pf.destroy = function () {
+            unsetEventListener(pf.form, "submit", listenForSubmission);
+            unsetEventListener(pf.form, namePardotFormHandlerJSerror, onErrorEvent);
+            unsetEventListener(pf.form, namePardotFormHandlerJSsuccess, onSuccessEvent);
+            clearCallback(pf[_currentCallbackId], "form destroyed");
             return pf;
         };
 
         var paused = false;
 
-        this.pause = function () {
+        pf.pause = function () {
             paused = true;
 
             return pf;
         };
 
-        this.unpause = function (formValues) {
+        pf.unpause = function (formValues) {
             if (paused === false) {
                 return pf;
             }
@@ -364,7 +462,7 @@
 
             if (formValues === false) {
                 pf.formValues = false;
-                removeLoadingOverlay(pf.form, pf.settings);
+                removeLoadingOverlay(pf.form, settings);
 
                 return pf;
             }
@@ -378,7 +476,7 @@
             return pf;
         };
 
-        this.formValues = false;
+        pf.formValues = false;
 
         var listenForSubmission = function (event) {
             var form = event.target;
@@ -397,11 +495,11 @@
 
             paused = false;
 
-            beforeSubmitValue = pf.callbacks.onBeforeSubmit(formValues, form);
+            beforeSubmitValue = callbacks[_onBeforeSubmit](formValues, form);
 
             // Canceling old request.
-            if (pf.currentCallbackId !== false) {
-                cancelCallback(pf.currentCallbackId);
+            if (pf[_currentCallbackId] !== false) {
+                cancelCallback(pf[_currentCallbackId]);
             }
 
             if (beforeSubmitValue === false) {
@@ -410,7 +508,7 @@
                 return;
             }
 
-            addLoadingOverlay(form, pf.settings);
+            addLoadingOverlay(form, settings);
 
             if (typeof beforeSubmitValue !== "undefined" && beforeSubmitValue !== true) {
                 formValues = beforeSubmitValue;
@@ -438,12 +536,11 @@
             pf.formValues = false;
 
             url = pf.form.getAttribute("action");
-            if (pf.settings.actionUrl !== false) {
-                // TODO: check if the url is valid
-                url = pf.settings.actionUrl;
+            if (settings[_actionUrl] !== false) {
+                url = settings[_actionUrl];
             }
 
-            callbackName = buildCallbackId(pf.form);
+            callbackName = buildCallbackId(serializeForm(pf.form));
             formData = serializeFormValues(formValues);
             scriptURL = url + "?callback=" + callbackName + "&" + formData;
 
@@ -453,49 +550,49 @@
                 pardotForm: pf,
                 url: scriptURL,
                 values: formValues,
-                scriptDom: false,
+                scriptDom: false
             };
 
-            pf.currentCallbackId = callbackName;
+            pf[_currentCallbackId] = callbackName;
 
-            script = document.createElement("script");
-            document.body.appendChild(script);
+            script = doc.createElement("script");
+            doc.body.appendChild(script);
             script.src = scriptURL;
             callbackList[callbackName].scriptDom = script;
 
-            pf.callbacks.onSubmit({
+            callbacks[_onSubmit]({
                 submit: callbackList[callbackName],
-                result: false,
+                result: false
             });
 
-            if (pf.settings.timeout) {
+            if (settings[_timeout]) {
                 setTimeout(function () {
                     timeoutCheck(callbackList[callbackName]);
-                }, pf.settings.timeout);
+                }, settings[_timeout]);
             }
         };
 
-        form.addEventListener("submit", listenForSubmission);
+        setEventListener(form, "submit", listenForSubmission);
 
         var onErrorEvent = function (event) {
             addFormMessaging(form, event.detail);
             removeLoadingOverlay(form);
-            pf.callbacks.onError(event.detail);
-            pf.currentCallbackId = false;
-            pf.callbacks.onComplete(event.detail);
+            callbacks[_onError](event.detail);
+            pf[_currentCallbackId] = false;
+            callbacks[_onComplete](event.detail);
         };
 
-        form.addEventListener(namePardotFormHandlerJSerror, onErrorEvent);
+        setEventListener(form, namePardotFormHandlerJSerror, onErrorEvent);
 
         var onSuccessEvent = function (event) {
             addFormMessaging(form, event.detail);
             removeLoadingOverlay(form);
-            pf.callbacks.onSuccess(event.detail);
-            pf.currentCallbackId = false;
-            pf.callbacks.onComplete(event.detail);
+            callbacks[_onSuccess](event.detail);
+            pf[_currentCallbackId] = false;
+            callbacks[_onComplete](event.detail);
         };
 
-        form.addEventListener(namePardotFormHandlerJSsuccess, onSuccessEvent);
+        setEventListener(form, namePardotFormHandlerJSsuccess, onSuccessEvent);
     };
 
     var callback = function (payload) {
@@ -512,6 +609,7 @@
 
         if (typeof payload.errors !== "undefined" && (payload.errors === true || payload.errors === "true")) {
             eventName = namePardotFormHandlerJSerror;
+            payload.errors = true;
         }
 
         var callbackId = false;
@@ -520,7 +618,7 @@
             callbackId = payload.callback;
         }
         else {
-            callbackScript = document.currentScript;
+            callbackScript = doc.currentScript;
 
             if (typeof callbackScript === "undefined") {
                 return;
@@ -546,7 +644,18 @@
             return;
         }
 
+        var settings = callbackList[callbackId].pardotForm.settings;
+
         submissionDetail = callbackList[callbackId];
+
+        if (payload.errors === true && typeof payload.errorMessage === "undefined") {
+            payload.errorMessage = settings[_defaultErrorMessage];
+        }
+
+        if (typeof payload.errors === "undefined" || payload.errors === false) {
+            payload.errors = false;
+            payload[_successMessage] = settings[_successMessage];
+        }
 
         form.dispatchEvent(
             new CustomEvent(eventName, {
@@ -554,7 +663,7 @@
                 detail: {
                     submit: submissionDetail,
                     result: payload
-                },
+                }
             })
         );
 
@@ -571,17 +680,17 @@
 
         detail = {
             submit: callbackList[callbackId],
-            result: {errors: true},
+            result: {errors: true}
         };
 
-        if (typeof callbackList[callbackId].pardotForm.settings.timeoutMessage === "string") {
-            detail.result.errorMessage = callbackList[callbackId].pardotForm.settings.timeoutMessage;
-        };
+        if (typeof callbackList[callbackId].pardotForm.settings[_timeoutMessage] === "string") {
+            detail.result.errorMessage = callbackList[callbackId].pardotForm.settings[_timeoutMessage];
+        }
 
         addFormMessaging(callbackList[callbackId].formDom, detail);
         removeLoadingOverlay(callbackList[callbackId].formDom);
-        callbackList[callbackId].pardotForm.callbacks.onError(detail);
-        callbackList[callbackId].pardotForm.callbacks.onComplete(detail);
+        callbackList[callbackId].pardotForm.callbacks[_onError](detail);
+        callbackList[callbackId].pardotForm.callbacks[_onComplete](detail);
 
         clearCallback(callbackId, "timed out");
     };
@@ -593,9 +702,9 @@
             return;
         }
 
-        callbackList[callbackId].pardotForm.callbacks.onCancel({
+        callbackList[callbackId].pardotForm.callbacks[_onCancel]({
             submit: callbackList[callbackId],
-            result: false,
+            result: false
         });
 
         clearCallback(callbackId, "canceled");
@@ -634,22 +743,48 @@
         return callbackReference.id;
     };
 
-    var setupForm = function (form, settings) {
-        if (!isForm(form)) {
-            return;
-        }
-
-        return new PardotForm(form, settings);
-    };
-
     var pfhjsInterface = {
-        setupForm(form, settings) {
-            return setupForm(form, settings);
+        ajax: function (url, formValues, initialSettings) {
+            return new AJAX(url, formValues, initialSettings);
         },
-        callback(payload) {
+        callback: function (payload) {
             return callback(payload);
+        },
+        getFormValues: function (form) {
+            return getFormValues (form);
+        },
+        setupForm: function (form, settings) {
+            if (!isForm(form)) {
+                return;
+            }
+            return new PardotForm(form, settings);
         }
     };
+
+    var defaultSettings = {};
+    defaultSettings[_actionUrl] = false;
+    defaultSettings[_successMessage] = "Success! Thank you for your submission.";
+    defaultSettings[_defaultErrorMessage] = "Submission failed! Please enter the required information correctly.";
+    defaultSettings[_timeout] = 5000;
+    defaultSettings[_timeoutMessage] = "Oops! The request has timed out. Please try again later.";
+
+    var defaultFormSettings = {};
+    defaultFormSettings[_resetFormAfterSuccess] = true;
+    defaultFormSettings[_showLoadingOverlay] = true;
+    defaultFormSettings[_loadingOverlayBgColor] = "rgba(0,0,0,.1)";
+    defaultFormSettings[_loadingOverlayInnerHtml] = "<style>@keyframes " + classLoaderSpin + "{100%{transform:rotate(360deg);}}</style><div style='position:absolute;top:50%;left:50%;width:50px;height:50px;box-sizing:border-box;margin:-25px 0 0 -25px;border:#fff 4px solid;border-radius:25px;animation:" + classLoaderSpin + " 3s linear infinite;border-color:#555 transparent transparent;'></div>";
+    defaultFormSettings[_showFormMessaging] = true;
+    defaultFormSettings[_messageErrorBgColor] = "#d12";
+    defaultFormSettings[_messageErrorTxtColor] = "#fff";
+    defaultFormSettings[_messageSuccessBgColor] = "#184";
+    defaultFormSettings[_messageSuccessTxtColor] = "#fff";
+    defaultFormSettings[_messagePadding] = "4px";
+    defaultFormSettings[_messageMargin]= "0 0 4px";
+    defaultFormSettings[_messageBorderRadius] = "4px";
+
+    for (var attributeName in defaultSettings) {
+        defaultFormSettings[attributeName] = defaultSettings[attributeName];
+    }
 
     if (typeof root === "object" && typeof root[namePardotFormHandlerJS] === "undefined") {
         root[namePardotFormHandlerJS] = pfhjsInterface;

@@ -25,7 +25,7 @@ https://github.com/MindaugasPaulauskas/pardotFormHandlerJS/tree/main/demo/
     * update Success Location, for example: `https://yourwebsite.com/path-to-scripts/pardot-form-callback-success.js`.
     * update Error Location, for example: `https://yourwebsite.com/path-to-scripts/pardot-form-callback-dynamic.js`.
 4. Edit Chosen Pardot Form Handlers Form Fields:
-    * create Form Fields corresponding to your form inputs.
+    * create Form Fields corresponding to your form inputs (or form values in the case of an ajax call).
     * for every field choose `External Field Name` that corresponds to html form input names.
     * for every field write an appropriate `Error Message`, so it could be understood in the error message, as all errors get joined to a single message.
 
@@ -42,8 +42,36 @@ Success and error messages will appear on top of the form, if you want messaging
 
 You can set up multiple forms on the page.
 
+If you are choosing to use provided AJAX functionality, probably you have done some similar work before as there is some extra work involved.
 
-## Documentation
+
+# Documentation
+
+### Contents
+
+| [PardotForm](#pardotform-documantation)                          | [AJAX](#ajax-documentation)                            |
+| ---------------------------------------------------------------- | ------------------------------------------------------ |
+| [pardotFormHandlerJS.setupForm()](#pardotformhandlerjssetupform) | [pardotFormHandlerJS.ajax()](#pardotformhandlerjsajax) |
+| [PardotForm.setSettings()](#pardotformsetsettings)               | -                                                      |
+| [PardotForm.onBeforeSubmit()](#pardotformonbeforesubmit)         | -                                                      |
+| [PardotForm.pause()](#pardotformpause)                           | -                                                      |
+| [PardotForm.unpause()](#pardotformunpause)                       | -                                                      |
+| [PardotForm.onSubmit()](#pardotformonsubmit)                     | [AJAX.onSubmit()](#ajaxonsubmit)                       |
+| [PardotForm.onCancel()](#pardotformoncancel)                     | -                                                      |
+| [PardotForm.onSuccess()](#pardotformonsuccess)                   | [AJAX.onSuccess()](#ajaxonsuccess)                     |
+| [PardotForm.onError()](#pardotformonerror)                       | [AJAX.onError()](#ajaxonerror)                         |
+| [PardotForm.onComplete()](#pardotformoncomplete)                 | [AJAX.onComplete()](#ajaxoncomplete)                   |
+| [PardotForm.destroy()](#pardotformdestroy)                       | -                                                      |
+| ([Settings](#pardotform-settings-parameter-object))              | ([Settings](#ajax-settings-parameter-object))          |
+| ([Example of usage](#example-of-pardotform-usage))               | ([Example of usage](#example-of-ajax-usage))           |
+
+| [Utility functions](#utility-functions-documentation)                    |
+| ------------------------------------------------------------------------ |
+| [pardotFormHandlerJS.getFormValues()](#pardotformhandlerjsgetformvalues) |
+
+---
+
+## PardotForm documantation
 
 ### pardotFormHandlerJS.setupForm()
 
@@ -261,7 +289,7 @@ Call this function to remove event listeners and cancel the current request of t
 
 ---
 
-### Settings parameter object
+### PardotForm settings parameter object
 
 create an object with settings that you want to change, for example:
 ```js
@@ -272,7 +300,7 @@ create an object with settings that you want to change, for example:
 }
 ```
 
-#### List of Settings and default values:
+#### List of PardotForm Settings and default values:
 * actionUrl: ```false```,
 * successMessage: ```"Success! Thank you for submission."```,
 * resetFormAfterSuccess: ```true```,
@@ -291,8 +319,9 @@ create an object with settings that you want to change, for example:
 * messageMargin: ```"0 0 4px"```,
 * messageBorderRadius: ```"4px"```.
 
+---
 
-## Example of Usage
+### Example of PardotForm Usage
 
 ```js
 let pardotDebugForm = window.pardotFormHandlerJS.setupForm(
@@ -334,7 +363,178 @@ pardotDebugForm.setSettings({
 });
 ```
 
-## Other
+---
+
+
+## AJAX documentation
+
+### pardotFormHandlerJS.ajax()
+
+#### Description
+
+```pardotFormHandlerJS.ajax(url, values[, settings])```
+
+Returns an AJAX object
+
+#### Parameters:
+* ___url___ is a string of a Pardot url that ajax call is going to submit to
+* ___values___ is an object with the values that are going to be submitted to Pardot
+* ___settings___ is an object with settings to be set. Read more in __Settings parameter object__ at the end of this documentation.
+
+---
+
+### AJAX.onSubmit()
+```js
+AJAX.onSubmit(callbackFunction)
+```
+```js
+AJAX.onSubmit(function(detail){/* your code goes here */})
+```
+
+Returns an AJAX object.
+
+#### Parameters:
+* ___callbackFunction___ is a function to be executed just after the submission.
+
+#### Parameters of __callbackFunction__:
+* ___detail___ is an object submission and result details. In this case the result is not available.
+
+#### Example reasons for using __callbackFunction__:
+* to lock form
+* to show loader
+* to remove old error messages
+
+---
+
+### AJAX.onSuccess()
+```js
+AJAX.onSuccess(callbackFunction)
+```
+```js
+AJAX.onSuccess(function(detail){/* your code goes here */})
+```
+
+Returns an AJAX object.
+
+#### Parameters:
+* ___callbackFunction___ is a function to be executed when form submission is completed successfully.
+
+#### Parameters of __callbackFunction__:
+* ___detail___ is an object submission and result details.
+
+#### Example reasons for using __callbackFunction__:
+* to show custom success messaging
+* to replace the form with success message
+* to send form data to your database through an api call
+
+---
+
+### AJAX.onError()
+```js
+AJAX.onError(callbackFunction)
+```
+```js
+AJAX.onError(function(detail){/* your code goes here */})
+```
+
+Returns an AJAX object.
+
+#### Parameters:
+* ___callbackFunction___ is a function to be executed when form submission is completed and has errors or timeouts.
+
+#### Parameters of __callbackFunction__:
+* ___detail___ is an object submission and result details.
+
+#### Example reasons for using __callbackFunction__:
+* to show custom error messaging
+
+---
+
+### AJAX.onComplete()
+```js
+AJAX.onComplete(callbackFunction)
+```
+```js
+AJAX.onComplete(function(detail){/* your code goes here */})
+```
+
+Returns an AJAX object.
+
+#### Parameters:
+* ___callbackFunction___ is a function to be executed after the submission has completed (after success or error).
+
+#### Parameters of __callbackFunction__:
+* ___detail___ is an object submission and result details.
+
+#### Example reasons for using __callbackFunction__:
+* to unlock form
+* to remove/hide loader
+
+---
+
+### AJAX settings parameter object
+
+create an object with settings that you want to change, for example:
+```js
+{
+    successMessage: "Thank you!",
+    timeout: 9999,
+    defaultErrorMessage: "Something Went Wrong! Please try again.",
+}
+```
+
+#### List of AJAX Settings and default values:
+* actionUrl: ```false```,
+* successMessage: ```"Success! Thank you for submission."```,
+* defaultErrorMessage: ```"Submission failed! Please enter required information."```,
+* timeout: ```5000```,
+* timeoutMessage: ```"Oops! Request has timed out. Please try again later."```.
+
+---
+
+### Example of AJAX Usage
+
+```js
+pardotFormHandlerJS.ajax(
+    "https://pardothandler.onrender.com/pardot-handler-simulation-with-dynamic-success-and-error-location",
+    {name: "Mindaugas", email: "fake@email.io"},
+    {successMessage: "You have subscribed!", timeoutMessage: Something went wrong. Please try again later."}
+)
+    .onSubmit(function(detail) {
+        console.log("[onSubmit] detail:", detail);
+    })
+    .onSuccess(function(detail) {
+        console.log("[onSuccess] detail:", detail);
+    })
+    .onError(function(detail) {
+        console.log("[onError] detail:", detail);
+    })
+    .onComplete(function(detail) {
+        console.log("[onComplete] detail:", detail);
+    });
+```
+
+---
+
+
+## Utility functions documentation
+
+### pardotFormHandlerJS.getFormValues()
+```js
+pardotFormHandlerJS.getFormValues(form)
+```
+
+Returns an object with form values.
+
+#### Parameters:
+* ___form___ is a Dom object of a form.
+
+Usefull to get all form values, especialy when using AJAX functionality.
+
+---
+
+
+# Other
 
 * More documentation is coming (especially on configuration)
 * More demos are coming (open to suggestions)
@@ -351,6 +551,7 @@ pardotDebugForm.setSettings({
 
 * GitHub corner code taken from https://tholman.com/github-corners/
 * SweetAlert2 popup: https://sweetalert2.github.io
+* tingle.js popup: https://tingle.robinparisi.com
 
 ### Demo hosting
 
